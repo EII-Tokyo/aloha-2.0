@@ -8,7 +8,7 @@ This codebase is forked from the [Interbotix ALOHA repo](https://github.com/Inte
 
 ```bash
 cd ~/
-git clone https://github.com/EII-Tokyo/aloha -b 2.0
+git clone https://github.com/EII-Tokyo/aloha-2.0
 ```
 
 ## Hardware Guide
