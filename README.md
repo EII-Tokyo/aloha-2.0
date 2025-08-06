@@ -1,6 +1,6 @@
 # Instructions
 
-This codebase is forked from the [Interbotix ALOHA repo](https://github.com/Interbotix/aloha), and contains teleoperation and dataset collection and evaluation tools for the Stationary ALOHA kits.
+This codebase is copied from the [Interbotix ALOHA repo 2.0 branch](https://github.com/Interbotix/aloha/tree/2.0), and contains teleoperation and dataset collection and evaluation tools for the Stationary ALOHA kits.
 
 # Quick Start
 
@@ -75,7 +75,7 @@ If realsense-viewer is not already installed on your machine, follow these steps
 3. Click on Info for the camera, find the Serial Number, and copy it.
 ![Serial Number of Camera](./images/rsviewer_serialno2.png)
 
-4. Put the camera serial number in the appropriate config entry at `~/aloha/config/robot/aloha_stationary.yaml`.
+4. Put the camera serial number in the appropriate config entry at `~/aloha-2.0/config/robot/aloha_stationary.yaml`.
 
 5. Repeat for the rest of the cameras. If the workspace has not been symbolically-linked, a rebuild may be necessary.
 
