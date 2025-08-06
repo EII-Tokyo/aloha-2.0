@@ -106,7 +106,7 @@ def save_videos(video, dt, video_path=None):
         w = w * len(cam_names)
         fps = int(1/dt)
         out = cv2.VideoWriter(
-            video_path, cv2.VideoWriter_fourcc(*'mp4v'), fps, (w, h))
+            video_path, cv2.VideoWriter_fourcc(*'XVID'), fps, (w, h))
         for ts, image_dict in enumerate(video):
             images = []
             for cam_name in cam_names:

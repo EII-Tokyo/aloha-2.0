@@ -13,24 +13,24 @@ tasks:
   # ----------------------------------------------------------------------------
   aloha_mobile_dummy:
     # Path to the dataset storage directory
-    dataset_dir: "~/aloha_data/aloha_mobile_dummy"  
+    dataset_dir: "~/interbotix_ws/src/aloha/aloha_data/aloha_mobile_dummy"  
     # Length of each episode in timesteps
     episode_len: 300                               
 
   # ----------------------------------------------------------------------------
   # Task: Aloha Stationary Dummy
   # ----------------------------------------------------------------------------
-  aloha_stationary_dummy:
+  aloha_stationary:
     # Path to the dataset storage directory
-    dataset_dir: "~/aloha_data/aloha_stationary_dummy"  
+    dataset_dir: "~/interbotix_ws/src/aloha/aloha_data/aloha_stationary"  
     # Length of each episode in timesteps
-    episode_len: 500                                   
+    episode_len: 600                                
 
   # ----------------------------------------------------------------------------
   # Task: Aloha Solo Dummy
   # ----------------------------------------------------------------------------
   aloha_solo_dummy:
     # Path to the dataset storage directory
-    dataset_dir: "~/aloha_data/aloha_solo_dummy"  
+    dataset_dir: "~/interbotix_ws/src/aloha/aloha_data/aloha_solo_dummy"  
     # Length of each episode in timesteps
     episode_len: 500                              

@@ -29,8 +29,117 @@ import rclpy
 from rclpy.duration import Duration
 from rclpy.constants import S_TO_NS
 from typing import Dict
+import numpy as np
+import time
 
 
+
+
+def get_robot_efforts(robots: Dict[str, InterbotixManipulatorXS]) -> Dict[str, np.ndarray]:
+    """
+    获取所有机器人的力矩信息
+    
+    :param robots: 机器人字典
+    :return: 包含每个机器人力矩信息的字典，包含原始电流值和转换后的力矩值
+    """
+    efforts = {}
+    
+    # 力矩常数 (Nm/A) - 根据实际电机型号计算
+    # XM540-W270-T: 10.6 Nm @ 4.4A → 2.409 Nm/A
+    # XM430-W350: 4.1 Nm @ 2.3A → 1.783 Nm/A
+    torque_constants = {
+        'waist': 2.409,        # XM540-W270-T
+        'shoulder': 2.409,     # XM540-W270-T
+        'elbow': 2.409,        # XM540-W270-T
+        'forearm_roll': 2.409, # XM540-W270-T
+        'wrist_angle': 2.409,  # XM540-W270-T
+        'wrist_rotate': 1.783, # XM430-W350
+        'gripper': 1.783       # XM430-W350
+    }
+    pos_i_gain = robots['follower_right'].core.robot_get_motor_registers("single", "gripper", "Position_I_Gain")
+    pos_p_gain = robots['follower_right'].core.robot_get_motor_registers("single", "gripper", "Position_P_Gain")
+    current_limit = robots['follower_right'].core.robot_get_motor_registers("single", "gripper", "Current_Limit")
+    print(f"Position_I_Gain: {pos_i_gain} (类型: {type(pos_i_gain)})")
+    print(f"Position_P_Gain: {pos_p_gain} (类型: {type(pos_p_gain)})")
+    print(f"Current_Limit: {current_limit} (类型: {type(current_limit)})")
+    for name, bot in robots.items():
+        try:
+            # 获取机械臂关节力矩 (原始值为毫安)
+            arm_efforts_ma = bot.arm.get_joint_efforts()  # milliamps
+            # 获取抓手力矩 (原始值为毫安)
+            gripper_effort_ma = bot.gripper.get_gripper_effort()  # milliamps
+
+            # 将毫安转换为安培，然后转换为实际力矩值
+            arm_efforts_nm = []
+            joint_names = ['waist', 'shoulder', 'elbow', 'forearm_roll', 'wrist_angle', 'wrist_rotate']
+            
+            for i, effort_ma in enumerate(arm_efforts_ma):
+                current_a = effort_ma / 1000.0  # 毫安转安培
+                joint_name = joint_names[i]
+                torque_nm = current_a * torque_constants[joint_name]  # 转换为力矩
+                arm_efforts_nm.append(torque_nm)
+            
+            # 抓手力矩转换 (使用XM430-W350的力矩常数)
+            gripper_current_a = gripper_effort_ma / 1000.0
+            gripper_torque_nm = gripper_current_a * torque_constants['gripper']
+            
+            # 合并数据：原始电流值和转换后的力矩值
+            efforts[name] = {
+                'currents_ma': np.append(arm_efforts_ma, gripper_effort_ma),
+                'torques_nm': np.append(arm_efforts_nm, gripper_torque_nm)
+            }
+            
+        except Exception as e:
+            print(f"获取机器人 {name} 力矩失败: {e}")
+            efforts[name] = None
+    
+    return efforts
+
+
+def print_efforts(efforts: Dict[str, dict], timestamp: float = 0.0):
+    """
+    打印力矩信息
+    
+    :param efforts: 力矩字典，包含电流值和力矩值
+    :param timestamp: 时间戳
+    """
+    # if timestamp > 0:
+    #     print(f"\n=== 时间: {timestamp:.3f}s ===")
+    # else:
+    #     print(f"\n=== 力矩信息 ===")
+    
+    joint_names = ['waist', 'shoulder', 'elbow', 'forearm_roll', 'wrist_angle', 'wrist_rotate']
+    
+    for robot_name, effort_data in efforts.items():
+        if effort_data is not None and robot_name == 'follower_right':
+            # print(f"{robot_name}:")
+            
+            currents_ma = effort_data['currents_ma']
+            torques_nm = effort_data['torques_nm']
+            
+            # print("  关节名称        电流(mA)     力矩(Nm)")
+            # print("  " + "-" * 35)
+            
+            # # 输出每个关节的电流和力矩值
+            # for i, joint_name in enumerate(joint_names):
+            #     current_val = currents_ma[i]
+            #     torque_val = torques_nm[i]
+            #     print(f"  {joint_name:<12} {current_val:>8.1f} {torque_val:>10.4f}")
+            
+            # 抓手信息
+            gripper_current = currents_ma[-1]
+            gripper_torque = torques_nm[-1]
+            if gripper_current > 1700:
+                print(f"  {'gripper':<12} {gripper_current:>8.1f} {gripper_torque:>10.4f}")
+            
+            # 计算并显示总力矩
+        #     total_current = np.sum(np.abs(currents_ma))
+        #     total_torque = np.sum(np.abs(torques_nm))
+        #     print("  " + "-" * 35)
+        #     print(f"  {'总计':<12} {total_current:>8.1f} {total_torque:>10.4f}")
+        # else:
+        #     print(f"{robot_name}: 无法获取力矩数据")
+    # print("=" * 50)
 
 
 def opening_ceremony(robots: Dict[str, InterbotixManipulatorXS],
@@ -64,7 +173,7 @@ def opening_ceremony(robots: Dict[str, InterbotixManipulatorXS],
             follower_bot = follower_suffixes.pop(suffix)
             pairs.append((leader_bot, follower_bot))
         else:
-            # Raise an error if there’s an unmatched leader suffix
+            # Raise an error if there's an unmatched leader suffix
             raise ValueError(
                 f"Unmatched leader suffix '{suffix}' found. Every leader should have a corresponding follower with the same suffix.")
 
@@ -78,19 +187,26 @@ def opening_ceremony(robots: Dict[str, InterbotixManipulatorXS],
     if not pairs:
         raise ValueError(
             "No valid leader-follower pairs found in the robot dictionary.")
-
+    torque_off(follower_bots['follower_right'])
+    follower_bots['follower_right'].core.robot_set_motor_registers(
+        'single', 'gripper', 'Current_Limit', 300)
+    torque_off(follower_bots['follower_left'])
+    follower_bots['follower_left'].core.robot_set_motor_registers(
+        'single', 'gripper', 'Current_Limit', 300)
     # Initialize each leader-follower pair
     for leader_bot, follower_bot in pairs:
         # Reboot gripper motors and set operating modes
         follower_bot.core.robot_reboot_motors('single', 'gripper', True)
         follower_bot.core.robot_set_operating_modes('group', 'arm', 'position')
+        # follower_bot.core.robot_set_operating_modes(
+            # 'single', 'gripper', 'position')
         follower_bot.core.robot_set_operating_modes(
             'single', 'gripper', 'current_based_position')
         leader_bot.core.robot_set_operating_modes('group', 'arm', 'position')
         leader_bot.core.robot_set_operating_modes(
             'single', 'gripper', 'position')
-        follower_bot.core.robot_set_motor_registers(
-            'single', 'gripper', 'current_limit', 300)
+        # 关闭扭矩才能设置
+        
 
         # Enable torque for leader and follower
         torque_on(follower_bot)
@@ -196,10 +312,32 @@ def main(args: dict) -> None:
             iterative_update_fk=False,
         )
         robots[follower['name']] = robot_instance
+    # robots['follower_right'].core.robot_set_motor_registers("single", "gripper", "Position_P_Gain", 1)
+    # print(robots['follower_right'].core.robot_get_motor_registers("single", "gripper", "Position_I_Gain"))
+    # print(robots['follower_right'].core.robot_get_motor_registers("single", "gripper", "Position_P_Gain"))
+    # robots['follower_right'].core.robot_set_motor_registers("group", "arm", "Position_I_Gain", [800, 800, 800, 800, 800, 800, 800, 800])
 
     # Startup and initialize robot sequence
     robot_startup(node)
     opening_ceremony(robots, dt)
+
+    # robots['follower_right'].core.robot_set_motor_registers("single", "gripper", "Position_P_Gain", 2000)
+    # robots['follower_right'].core.robot_set_motor_registers("single", "gripper", "Position_I_Gain", 5000)
+    print("=== 电机寄存器设置 ===")
+    print(f"Position_I_Gain: {robots['follower_right'].core.robot_get_motor_registers('single', 'gripper', 'Position_I_Gain')}")
+    print(f"Position_P_Gain: {robots['follower_right'].core.robot_get_motor_registers('single', 'gripper', 'Position_P_Gain')}")
+    print(f"Operating_Mode: {robots['follower_right'].core.robot_get_motor_registers('single', 'gripper', 'Operating_Mode')}")
+    print(f"Current_Limit: {robots['follower_right'].core.robot_get_motor_registers('single', 'gripper', 'Current_Limit')}")
+    print("=====================")
+
+    # for name, bot in robots.items():
+    #     print(name, 
+    #     bot.core.robot_get_motor_registers("group", "arm", "Position_I_Gain"), 
+    #     bot.core.robot_set_motor_registers("group", "arm", "Position_I_Gain", 0), 
+    #     # bot.core.robot_set_motor_registers("single", "waist", "Position_I_Gain", 1000),
+    #     bot.core.robot_get_motor_registers("group", "arm", "Position_I_Gain"), 
+    #     bot.core.robot_get_motor_registers("group", "arm", "Operating_Mode")
+    #     )
     press_to_start(robots, dt, gravity_compensation)
 
     # Define gripper command objects for each follower
@@ -207,8 +345,21 @@ def main(args: dict) -> None:
         follower_name: JointSingleCommand(name='gripper') for follower_name in robots if 'follower' in follower_name
     }
 
+    # 获取力矩输出相关参数
+    torque_output = args.get('torque_output', False)
+    effort_print_interval = args.get('torque_interval', 1.0)
+    
+    # 初始化力矩输出相关变量
+    if torque_output:
+        last_effort_print_time = time.time()
+        start_time = time.time()
+        print("开始力矩监控...")
+        print(f"力矩输出间隔: {effort_print_interval}秒")
+
     # Main teleoperation loop
     while rclpy.ok():
+        current_time = time.time()
+        
         for leader_name, leader_bot in robots.items():
             if 'leader' in leader_name:
                 suffix = leader_name.replace('leader', '')
@@ -226,11 +377,19 @@ def main(args: dict) -> None:
                     gripper_command.cmd = LEADER2FOLLOWER_JOINT_FN(
                         leader_bot.gripper.get_gripper_position()
                     )
+                    # print(gripper_command.cmd, gripper_command)
                     follower_bot.gripper.core.pub_single.publish(
                         gripper_command)
 
+        # 定期输出力矩信息 (仅当启用时)
+        if torque_output and current_time - last_effort_print_time >= effort_print_interval:
+            efforts = get_robot_efforts(robots)
+            elapsed_time = current_time - start_time
+            print_efforts(efforts, elapsed_time)
+            last_effort_print_time = current_time
+
         # Sleep for the DT duration
-        DT_DURATION = Duration(seconds=0, nanoseconds=dt * S_TO_NS)
+        DT_DURATION = Duration(seconds=0, nanoseconds=int(dt * S_TO_NS))
         get_interbotix_global_node().get_clock().sleep_for(DT_DURATION)
 
     robot_shutdown(node)
@@ -247,5 +406,16 @@ if __name__ == '__main__':
         '-r', '--robot',
         required=True,
         help='Specify the robot configuration to use: aloha_solo, aloha_stationary, or aloha_mobile.'
+    )
+    parser.add_argument(
+        '-t', '--torque_output',
+        action='store_true',
+        help='If set, motor torque information will be printed during teleoperation.',
+    )
+    parser.add_argument(
+        '--torque_interval',
+        type=float,
+        default=0.1,
+        help='Interval (in seconds) for printing torque information. Default is 1.0 second.',
     )
     main(vars(parser.parse_args()))

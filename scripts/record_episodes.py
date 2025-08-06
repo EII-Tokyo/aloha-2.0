@@ -75,9 +75,23 @@ def opening_ceremony(robots: Dict[str, InterbotixManipulatorXS], gravity_compens
     if not pairs:
         raise ValueError("No valid leader-follower pairs found in the robot dictionary.")
 
+    torque_off(follower_bots['follower_right'])
+    follower_bots['follower_right'].core.robot_set_motor_registers(
+        'single', 'gripper', 'Current_Limit', 550)
+    torque_off(follower_bots['follower_left'])
+    follower_bots['follower_left'].core.robot_set_motor_registers(
+        'single', 'gripper', 'Current_Limit', 300)
 
     # Initialize each pair by setting their operating modes and moving to start positions
+    print("pairs:", pairs)
+    for i, (leader_bot, follower_bot) in enumerate(pairs):
+        print(f"Pair {i+1}: {leader_bot.core.robot_name} -> {follower_bot.core.robot_name}")
+    n = 0
     for leader_bot, follower_bot in pairs:
+        n += 1
+        print("n:", n)
+        print("leader_bot:", leader_bot.core.robot_name)
+        print("follower_bot:", follower_bot.core.robot_name)
         # Reboot and configure follower's gripper motor
         follower_bot.core.robot_reboot_motors("single", "gripper", True)
         follower_bot.core.robot_set_operating_modes("group", "arm", "position")
@@ -95,22 +109,37 @@ def opening_ceremony(robots: Dict[str, InterbotixManipulatorXS], gravity_compens
         torque_on(follower_bot)
         torque_on(leader_bot)
 
-        # Move both leader and follower robots to the starting arm position
-        start_arm_qpos = START_ARM_POSE[:6]
+        # Move both leader and follower robots to the starting arm position 
+        START_ARM_POSE = [
+            [0.0, -0.96, 1.16, 1.57, -0.0, -1.57, 0.02239, -0.02239], 
+            [0.0, -0.96, 1.16, 0.0, -0.0, 0.0, 0.02239, -0.02239]
+            
+        
+        ]
+        #[0.0, -0.96, 1.16, 1.57, -0.0, -1.57, 0.02239, -0.02239]
+        #    [0.0, -0.96, 1.16, 0.0, -0.0, 0.0, 0.02239, -0.02239]
+        # RIGHT_ARM_QPOS = [0.0, -0.96, 1.16, 1.57, 0.0, -1.57]
+        # LEFT_ARM_QPOS  = [0.1, -0.85, 1.05, 1.57, -0.1, -1.45]
+        # FULL_QPOS = RIGHT_ARM_QPOS + LEFT_ARM_QPOS
+        start_arm_qpos = START_ARM_POSE[n-1][:6]
+        print("start_arm_qpos:", start_arm_qpos)
+        # start_arm_qpos = START_ARM_POSE[(n-1)*8:(n-1)*8+6]
+        # print(f"start_arm_qpos{n}:", start_arm_qpos)
         move_arms(
-            bot_list=[leader_bot, follower_bot],
+            bot_list=[leader_bot, follower_bot], 
             target_pose_list=[start_arm_qpos] * 2,
             moving_time=4.0,
             dt=dt,
+            
         )
-
-        # Move both leader and follower grippers to the starting position
+        
+        # Move both leader and follower grippers to the starting position 
         move_grippers(
             [leader_bot, follower_bot],
             [LEADER_GRIPPER_JOINT_MID, FOLLOWER_GRIPPER_JOINT_CLOSE],
             moving_time=0.5,
             dt=dt,
-        )
+        ) # 
 
     # Prepare to start data collection by disabling leader gripper torque and waiting for input
     for leader_bot in leader_bots.values():
@@ -253,6 +282,7 @@ def capture_one_episode(
             data_dict[f"/observations/images/{cam_name}"] = []
 
     # Populate data_dict with recorded observations and actions
+    print("start to collect data")
     while actions:
         action = actions.pop(0)
         ts = timesteps.pop(0)

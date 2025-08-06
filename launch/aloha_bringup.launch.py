@@ -419,7 +419,7 @@ def generate_launch_description():
     declared_arguments.append(
         DeclareLaunchArgument(
             "use_gravity_compensation",
-            default_value="true",
+            default_value="false",
             choices=("true", "false"),
             description="if `true`, launches the gravity compensation node",
         )

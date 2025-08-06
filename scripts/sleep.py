@@ -15,6 +15,7 @@ from interbotix_common_modules.common_robot.robot import (
 from interbotix_xs_modules.xs_robot.arm import InterbotixManipulatorXS
 from pathlib import Path
 from typing import Dict, Sequence
+import rclpy
 
 
 def main() -> None:
@@ -37,6 +38,12 @@ def main() -> None:
         '-r', '--robot',
         required=True,
         help='Specify the robot configuration to use: aloha_solo, aloha_stationary, or aloha_mobile.'
+    )
+    argparser.add_argument(
+        '--skip-gravity-compensation',
+        help='Skip gravity compensation operations (useful when gravity compensation is not enabled)',
+        action='store_true',
+        default=False,
     )
     args = argparser.parse_args()
 
@@ -79,10 +86,18 @@ def main() -> None:
     # Perform robot startup actions
     robot_startup(node)
 
-    # Disable gravity compensation for leader arms
-    for name, bot in robots.items():
-        if 'leader' in name:
-            disable_gravity_compensation(bot)
+    # Disable gravity compensation for leader arms (only if not skipped)
+    if not args.skip_gravity_compensation:
+        for name, bot in robots.items():
+            if 'leader' in name:
+                try:
+                    disable_gravity_compensation(bot)
+                    print(f"Successfully disabled gravity compensation for {name}")
+                except Exception as e:
+                    print(f"Warning: Could not disable gravity compensation for {name}: {e}")
+                    print("This is normal if gravity compensation is not enabled")
+    else:
+        print("Skipping gravity compensation operations as requested")
 
     # Determine which bots to put to sleep (all if '--all' flag is set, else only followers)
     bots_to_sleep: Sequence[InterbotixManipulatorXS] = (

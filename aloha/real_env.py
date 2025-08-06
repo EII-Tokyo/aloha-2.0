@@ -14,6 +14,7 @@ from aloha.robot_utils import (
     FOLLOWER_GRIPPER_JOINT_OPEN,
     FOLLOWER_GRIPPER_JOINT_UNNORMALIZE_FN,
     FOLLOWER_GRIPPER_POSITION_NORMALIZE_FN,
+    FOLLOWER_GRIPPER_JOINT_NORMALIZE_FN,
     FOLLOWER_GRIPPER_VELOCITY_NORMALIZE_FN,
     LEADER_GRIPPER_JOINT_NORMALIZE_FN,
     START_ARM_POSE,
@@ -140,7 +141,7 @@ class RealEnv:
                 qpos_list.append(arm_qpos)
 
                 # Get the gripper joint position and normalize it
-                gripper_qpos = [FOLLOWER_GRIPPER_POSITION_NORMALIZE_FN(
+                gripper_qpos = [FOLLOWER_GRIPPER_JOINT_NORMALIZE_FN(
                     bot.gripper.get_gripper_position())]
                 qpos_list.append(gripper_qpos)
 

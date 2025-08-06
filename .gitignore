@@ -6,4 +6,4 @@
 log*
 __pycache__/
 act/
-data/
+aloha_data/

@@ -157,7 +157,7 @@ def move_grippers(
     target_pose_list: Sequence[float],
     moving_time: float,
     dt: float,
-) -> None:
+) -> None: 
     """
     Moves the grippers of a list of robotic arms to target positions over a specified duration.
 

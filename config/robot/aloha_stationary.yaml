@@ -94,25 +94,25 @@ robot:
         name: camera_high
 
         # Serial number for device identification
-        serial_no: ""
+        serial_no: "130322270656"
 
       - # Identifier for a stationary low camera
         name: camera_low
 
         # Serial number for device identification
-        serial_no: ""
+        serial_no: "218622270440"
 
       - # Identifier for right wrist camera
         name: camera_wrist_right
 
         # Serial number for device identification
-        serial_no: ""
+        serial_no: "218622278936"
 
       - # Identifier for left wrist camera
         name: camera_wrist_left
 
         # Serial number for device identification
-        serial_no: ""
+        serial_no: "130322272542"
 
   # Base configuration
   base: false
