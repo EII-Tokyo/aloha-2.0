@@ -83,7 +83,7 @@ If realsense-viewer is not already installed on your machine, follow these steps
 
 - Start docker and bring up the robot
 ```bash
-docker run --rm -it --memory=16g --network=host -v /dev:/dev -v .:/root/interbotix_ws/src/aloha --privileged lyl472324464/robot:aloha-stationary
+docker run --rm -it --memory=16g --network=host -v /dev:/dev -v .:/root/interbotix_ws/src/aloha --privileged lyl472324464/robot:aloha-2.0
 ros2 launch aloha aloha_bringup.launch.py robot:=aloha_stationary # launch hardware drivers and control software
 ```
 
