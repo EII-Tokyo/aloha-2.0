@@ -62,17 +62,21 @@ robot:
       enable_color: true
 
       # RGB camera configuration
-      rgb_camera:
-        # Resolution and FPS for RGB video (e.g., '640,480,60')
-        profile: "640,480,60"
+      # rgb_camera:
+      #   # Resolution and FPS for RGB video (e.g., '640,480,60')
+      #   profile: "640,480,60"
 
-        # Disables auto exposure for consistent lighting (default: false)
-        enable_auto_exposure: false
+      #   # Disables auto exposure for consistent lighting (default: false)
+      #   enable_auto_exposure: false
 
       # Depth module configuration
       depth_module:
         # Resolution and FPS for depth sensing (e.g., '640,480,60')
-        profile: "640,480,60"
+        color_profile: "640x480x60"
+
+        exposure: 8500
+
+        gain: 32
 
         # Disables auto exposure for depth consistency (default: false)
         enable_auto_exposure: false
