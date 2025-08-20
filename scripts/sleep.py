@@ -112,8 +112,37 @@ def main() -> None:
     # Move selected bots to their sleep positions
     sleep_arms(bots_to_sleep, home_first=True, dt=dt)
 
+    # 打印休眠后的关节角度
+    print_final_joint_positions(robots)
+
     # Perform robot shutdown actions
     robot_shutdown(node)
+
+
+def print_final_joint_positions(robots):
+    """打印所有机器人的最终关节角度"""
+    import numpy as np
+    
+    joint_names = ["waist", "shoulder", "elbow", "forearm", "wrist_angle", "wrist_rotate", "gripper1", "gripper2", "gripper"]
+    
+    print("\n=== 休眠后的关节角度 ===")
+    for robot_name, robot in robots.items():
+        try:
+            # 获取当前关节位置
+            current_positions = robot.core.joint_states.position
+            
+            print(f"\n{robot_name} 机器人休眠位置:")
+            # 显示所有可用的关节
+            for i, position in enumerate(current_positions):
+                if i < len(joint_names):
+                    joint_name = joint_names[i]
+                else:
+                    joint_name = f"joint_{i}"
+                
+                degrees = np.degrees(position)
+                print(f"  {joint_name:12}: {position:8.4f} rad ({degrees:6.2f}°)")
+        except Exception as e:
+            print(f"无法获取 {robot_name} 的关节角度: {e}")
 
 
 if __name__ == "__main__":

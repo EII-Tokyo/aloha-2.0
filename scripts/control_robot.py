@@ -115,7 +115,8 @@ def main():
         # controller_left = RobotController(robot_name=left_robot_name, init_node=False)
         
         # print(controller_right.get_gripper_position())
-        controller_right.set_gripper_position(FOLLOWER_GRIPPER_JOINT_OPEN)
+        # controller_right.set_gripper_position(FOLLOWER_GRIPPER_JOINT_OPEN)
+        print(controller_right.bot.core.joint_states)
         # time.sleep(1)
         # print(controller_right.get_gripper_position())
         # 运行测试序列

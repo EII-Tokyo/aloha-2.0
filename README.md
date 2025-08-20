@@ -125,7 +125,7 @@ python3 record_episodes.py --task_name aloha_stationary --robot aloha_stationary
 docker ps # get the container id
 docker exec -it <container_id> /bin/bash # enter the container
 cd /root/interbotix_ws/src/aloha/scripts/
-python3 visualize_episodes.py --dataset_dir ../aloha_data/aloha_stationary/ --episode_idx 7 -r aloha_stationary
+python3 visualize_episodes.py --dataset_dir ../aloha_data/aloha_stationary/ --episode_idx 83 -r aloha_stationary
 ```
 
 - Replay episodes
@@ -133,7 +133,7 @@ python3 visualize_episodes.py --dataset_dir ../aloha_data/aloha_stationary/ --ep
 docker ps # get the container id
 docker exec -it <container_id> /bin/bash # enter the container
 cd /root/interbotix_ws/src/aloha/scripts/
-python3 replay_episodes.py --dataset_dir ../aloha_data/aloha_stationary/ --episode_idx 7 -r aloha_stationary
+python3 replay_episodes.py --dataset_dir ../aloha_data/aloha_stationary/ --episode_idx 83 -r aloha_stationary
 ```
 
 # Structure
@@ -141,3 +141,8 @@ python3 replay_episodes.py --dataset_dir ../aloha_data/aloha_stationary/ --episo
 - [``config``](./config/): a config for each robot, designating the port they should bind to, more details in quick start guide.
 - [``launch``](./launch): a ROS 2 launch file for all cameras and manipulators.
 - [``scripts``](./scripts/): Python scripts for teleop and data collection
+
+
+
+
+83

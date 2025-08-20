@@ -24,7 +24,7 @@ tasks:
     # Path to the dataset storage directory
     dataset_dir: "~/interbotix_ws/src/aloha/aloha_data/aloha_stationary"  
     # Length of each episode in timesteps
-    episode_len: 600                                
+    episode_len: 500                                
 
   # ----------------------------------------------------------------------------
   # Task: Aloha Solo Dummy
